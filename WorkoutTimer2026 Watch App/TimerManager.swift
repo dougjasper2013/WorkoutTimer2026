@@ -91,7 +91,7 @@ final class TimerManager: ObservableObject {
             let elapsed = now.timeIntervalSince(lastTick)
             if elapsed >= 1.0 {
                 let wholeSeconds = floor(elapsed)
-                remaining = max(0, wholeSeconds)
+                remaining = max(0, remaining - wholeSeconds)
                 lastTick = now
                 updateProgress()
                 
