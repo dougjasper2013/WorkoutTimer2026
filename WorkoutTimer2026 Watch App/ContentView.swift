@@ -31,13 +31,89 @@ struct ContentView: View {
     @State private var customSeconds: Int = 0
     
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        VStack(spacing: 10) {
+            // MARK: - Segmented Pills + Custom
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    // Preset pills
+                    ForEach(0..<presetLabels.count, id: \.self) {
+                        idx in
+                        Button(action: {
+                            withAnimation {
+                                selectedPresetIndex = idx
+                                timerManager.setDuration(presets[idx])
+                                UserDefaults.standard.set(idx, forKey: "lastPresetKey")
+                            }
+                        }) {
+                            Text(presetLabels[idx])
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .frame(minWidth: 44)
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 10)
+                                .background(segmentBackground(for: idx))
+                                .clipShape(Capsule())
+                                
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    
+                    // Custom pill
+                    Button(action: {
+                        // Load last custom time if exists
+                        let lastCustom = UserDefaults.standard.integer(forKey: "lastCustomTimeKey")
+                        customMinutes = lastCustom / 60
+                        customSeconds = lastCustom % 60
+                        selectedPresetIndex = presets.count //mark custom selected
+                        ShowingCustomTimeSheet = true
+                    }) {
+                        Text("Custom")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .frame(minWidth: 44)
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 10)
+                            .background(selectedPresetIndex >= presets.count ? Color.accentColor : Color.clear)
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule().strokeBorder(Color.gray.opacity(0.4), lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                .padding(.horizontal, 6)
+            }
+            
+            // MARK: - Timer display
+            Text(timerManager.formattedRemaining())
+                .font(.system(size: 32, weight: .semibold, design: .rounded))
+                
+            // MARK: - Progress ring
+            ProgressView(value: timerManager.progress)
+                .progressViewStyle(CircularProgressViewStyle())
+                .scaleEffect(1.15)
+                .frame(width: 70, height: 70)
+            
+            // MARK: - Controls
+            HStack(spacing: 10) {
+                Button(action: {
+                    timerManager.toggle()
+                }) {
+                    Label(timerManager.isRunning ? "Pause" : "Start",
+                          systemImage: timerManager.isRunning ? "pause.fill" : "play.fill")
+                }
+                .buttonStyle(.borderedProminent)
+                
+                Button(action: {
+                    timerManager.reset()
+                }) {
+                    Label("Reset",
+                          systemImage: "arrow.counterclockwise")
+                }
+                .buttonStyle(.bordered)
+            }
         }
         .padding()
+        
+        
     }
 }
 
